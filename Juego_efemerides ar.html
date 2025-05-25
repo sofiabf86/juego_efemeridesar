@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Aprende Jugando: Efemérides Argentinas! 🇦🇷✨</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            overflow-x: hidden; /* Evita el scroll horizontal */
+        }
+        /* Animación para los emojis de correcto/incorrecto */
+        @keyframes pop {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: pop 0.3s ease-out;
+        }
+
+        /* Estilos para la nueva Etapa 2 (Asocia Imagen y Fecha) */
+        .matching-card {
+            background-color: #a78bfa; /* purple-400 */
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, background-color 0.2s ease, border-color 0.2s ease; /* Añadida transición para border-color */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-height: 120px; /* Asegura un tamaño mínimo */
+            text-align: center; /* Centra el texto */
+        }
+        .matching-card:hover {
+            transform: scale(1.03);
+        }
+        .matching-card.selected {
+            background-color: #fcd34d; /* yellow-300 */
+            border: 3px solid #d97706; /* amber-600 */
+            transform: scale(1.05);
+        }
+        .matching-card.matched {
+            background-color: #34d399; /* green-500 */
+            cursor: default;
+            pointer-events: none; /* Deshabilita el clic */
+            transform: none; /* Quita el escalado */
+            border: 3px solid #10b981; /* green-600 */
+        }
+        .matching-card.incorrect {
+            background-color: #ef4444; /* red-500 */
+            border: 3px solid #b91c1c; /* red-700 */
+        }
+        .matching-card img {
+            max-width: 90px; /* Controla el tamaño de la imagen */
+            max-height: 90px;
+            object-fit: contain;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Estilos para la Etapa 3 (Descubre la Imagen) */
+        .image-card {
+            width: 120px;
+            height: 120px;
+            background-color: #a78bfa; /* purple-400 */
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.4s ease-in-out; /* Animación de volteo más suave */
+            transform-style: preserve-3d;
+            position: relative;
+        }
+        .image-card.flipped {
+            transform: rotateY(180deg);
+        }
+        .image-card .front, .image-card .back {
+            position: absolute;
+            backface-visibility: hidden;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: inherit;
+        }
+        .image-card .back {
+            transform: rotateY(180deg);
+            background-color: #c4b5fd; /* purple-200, para que se vea la imagen */
+            padding: 0.5rem; /* Pequeño padding dentro de la carta revelada */
+        }
+        .image-card img {
+            width: 100%; /* La imagen llenará el back */
+            height: 100%;
+            object-fit: contain; /* Para que la imagen no se recorte */
+            border-radius: inherit;
+        }
+        .card-cover {
+            background-color: #a78bfa; /* purple-400 */
+            border-radius: 0.75rem;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem; /* Tamaño del signo de interrogación */
+            color: white;
+            transition: opacity 0.3s ease;
+        }
+        /* Estilo para el temporizador */
+        .timer {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4a5568; /* gray-700 */
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .timer.warning {
+            color: #ef4444; /* red-500 */
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-300 via-green-300 to-yellow-300 min-h-screen flex items-center justify-center p-4">
+
+    <div id="app" class="bg-white rounded-3xl shadow-xl p-8 w-full max-w-4xl text-center border-4 border-indigo-400 relative">
+        <h1 class="text-5xl font-extrabold text-blue-700 mb-6 animate-bounce">¡Aprende y Juega! 🇦🇷🎮</h1>
+
+        <div id="startScreen" class="">
+            <p class="text-2xl text-gray-700 mb-8">¡Hola, pequeño/a explorador/a! 🚀 ¿Estás listo/a para un viaje divertido por la historia de nuestro país?</p>
+            <button id="startButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-10 rounded-full text-xl transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+                ¡Vamos a Jugar! 🥳
+            </button>
+        </div>
+
+        <div id="triviaStage" class="hidden">
+            <div class="timer" id="triviaTimer">Tiempo: <span>60</span>s</div>
+            <h2 class="text-4xl font-extrabold text-purple-700 mb-6">Etapa 1: ¡Trivia de la Historia! 📚</h2>
+            <p class="text-xl text-gray-600 mb-4">Pregunta <span id="triviaQuestionNumber" class="font-bold text-indigo-600"></span></p>
+            <p id="triviaQuestionText" class="text-3xl font-semibold text-purple-700 mb-8"></p>
+            <div id="triviaOptionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            <p id="triviaFeedback" class="mt-6 text-2xl font-bold"></p>
+            <button id="nextStage1Button" class="hidden mt-8 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg transition duration-300 ease-in-out transform hover:scale-105">
+                Siguiente Etapa ▶️
+            </button>
+        </div>
+
+        <div id="matchStage" class="hidden">
+            <div class="timer" id="matchTimer">Tiempo: <span>60</span>s</div>
+            <h2 class="text-4xl font-extrabold text-green-700 mb-6">Etapa 2: ¡Asocia y Descubre! 🧩</h2>
+            <p class="text-2xl text-gray-700 mb-8">Haz clic en una imagen y luego en su fecha correcta. 👇</p>
+            <div class="grid grid-cols-2 gap-4 max-w-2xl mx-auto mb-8">
+                <div id="matchImageContainer" class="flex flex-wrap justify-center content-start gap-4 p-4 bg-gray-100 rounded-lg shadow-inner border-2 border-gray-200 min-h-[250px]">
+                    </div>
+                <div id="matchDateContainer" class="flex flex-wrap justify-center content-start gap-4 p-4 bg-gray-100 rounded-lg shadow-inner border-2 border-gray-200 min-h-[250px]">
+                    </div>
+            </div>
+            <p id="matchFeedback" class="mt-6 text-2xl font-bold"></p>
+            <button id="nextStage2Button" class="hidden mt-8 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg transition duration-300 ease-in-out transform hover:scale-105">
+                Siguiente Etapa ▶️
+            </button>
+        </div>
+
+        <div id="revealImageStage" class="hidden">
+            <div class="timer" id="revealImageTimer">Tiempo: <span>60</span>s</div>
+            <h2 class="text-4xl font-extrabold text-orange-700 mb-6">Etapa 3: ¡El Misterio de la Historia! 🕵️‍♀️</h2>
+            <p class="text-2xl text-gray-700 mb-8">Haz clic en una carta para descubrir la imagen y elige la opción correcta. 👇</p>
+            <div id="imageCardsContainer" class="grid grid-cols-3 gap-4 justify-center max-w-md mx-auto mb-8">
+                </div>
+            <div id="revealOptionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+                </div>
+            <p id="revealFeedback" class="mt-6 text-2xl font-bold"></p>
+            <button id="nextStage3Button" class="hidden mt-8 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg transition duration-300 ease-in-out transform hover:scale-105">
+                ¡Juego Terminado! 🏁
+            </button>
+        </div>
+
+        <div id="finalResultsScreen" class="hidden">
+            <h2 class="text-4xl font-extrabold text-blue-700 mb-4">¡Felicidades, Héroe de la Historia! 🎉</h2>
+            <p class="text-3xl text-gray-700 mb-6">¡Completaste todas las etapas!</p>
+            <p class="text-2xl text-gray-700 mb-6">Tu puntaje total fue: <span id="finalTotalScore" class="font-bold text-green-600"></span></p>
+            <button id="restartGameButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-10 rounded-full text-xl transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+                ¡Jugar Otra Vez! 🌟
+            </button>
+        </div>
+    </div>
+
+    <audio id="correctSound" src="https://www.soundjay.com/buttons/beep-07.mp3"></audio>
+    <audio id="wrongSound" src="https://www.soundjay.com/buttons/beep-06.mp3"></audio>
+    <audio id="startSound" src="https://www.soundjay.com/misc/sounds/peep-03.mp3"></audio>
+    <audio id="stageCompleteSound" src="https://www.soundjay.com/misc/sounds/peep-01.mp3"></audio>
+    <audio id="cardFlipSound" src="https://www.soundjay.com/misc/sounds/light-switch-01.mp3"></audio>
+    <audio id="timeUpSound" src="https://www.soundjay.com/misc/sounds/peep-02.mp3"></audio> <script>
+        // --- Datos del Juego ---
+        const triviaQuestions = [
+            {
+                date: "12 de Marzo",
+                characteristics: [
+                    "Se celebra el Día del Escudo Nacional. 🛡️",
+                    "Es uno de los símbolos patrios de Argentina. ✨",
+                    "Representa la unión y libertad del pueblo. 🤝"
+                ],
+                correctAnswer: "12 de Marzo",
+                options: ["12 de Marzo", "2 de Abril", "1 de Mayo", "11 de Mayo"]
+            },
+            {
+                date: "2 de Abril",
+                characteristics: [
+                    "Es el Día del Veterano y de los Caídos en la Guerra de Malvinas. 🇦🇷",
+                    "Recordamos a los héroes que lucharon por nuestras islas. 🎗️",
+                    "Es una fecha para reflexionar sobre la soberanía argentina. 🕊️"
+                ],
+                correctAnswer: "2 de Abril",
+                options: ["18 de Mayo", "2 de Abril", "25 de Mayo", "1 de Mayo"]
+            },
+            {
+                date: "1ro de Mayo",
+                characteristics: [
+                    "Se celebra el Día del Trabajador en el mundo. 🌍",
+                    "Se recuerda la lucha de los trabajadores por sus derechos. 💪",
+                    "El trabajo da dignidad a las personas. 👷‍♀️👷‍♂️"
+                ],
+                correctAnswer: "1ro de Mayo",
+                options: ["12 de Marzo", "2 de Abril", "1ro de Mayo", "11 de Mayo"]
+            },
+            {
+                date: "11 de Mayo",
+                characteristics: [
+                    "Se celebra el Día del Himno Nacional Argentino. 🎶",
+                    "El himno es una canción y símbolo de identidad y orgullo. 💙🤍💙",
+                    "Se canta con respeto en actos y celebraciones patrias. 🙏"
+                ],
+                correctAnswer: "11 de Mayo",
+                options: ["18 de Mayo", "2 de Abril", "25 de Mayo", "11 de Mayo"]
+            },
+            {
+                date: "18 de Mayo",
+                characteristics: [
+                    "Es el Día de la Escarapela Nacional. 🎗️",
+                    "Es otro de nuestros símbolos patrios, sus colores son celeste y blanco. ⚪🔵",
+                    "Representa el amor por la patria. ❤️🇦🇷"
+                ],
+                correctAnswer: "18 de Mayo",
+                options: ["12 de Marzo", "18 de Mayo", "1ro de Mayo", "11 de Mayo"]
+            },
+            {
+                date: "25 de Mayo",
+                characteristics: [
+                    "Se celebra la Revolución de Mayo. 🥳",
+                    "Fue el día en que formamos nuestro primer gobierno patrio. 🤝",
+                    "Es el inicio de la independencia de Argentina. 🌟"
+                ],
+                correctAnswer: "25 de Mayo",
+                options: ["12 de Marzo", "2 de Abril", "25 de Mayo", "11 de Mayo"]
+            }
+        ];
+
+        // URLs de imágenes para las etapas (¡LOCALES Y CON NOMBRES EXACTOS!)
+        const imagesData = [
+            { id: 'escudo', src: 'escudo.jpg', definition: 'Escudo Nacional', date: '12 de Marzo' },
+            { id: 'malvinas', src: 'malvinas.jpg', definition: 'Guerra de Malvinas', date: '2 de Abril' },
+            { id: 'trabajador', src: 'trabajo.jpg', definition: 'Día del Trabajador', date: '1ro de Mayo' },
+            { id: 'himno', src: 'himno.jpg', definition: 'Himno Nacional', date: '11 de Mayo' },
+            { id: 'escarapela', src: 'escarapela.jpg', definition: 'Día de la Escarapela', date: '18 de Mayo' },
+            { id: 'cabildo', src: '25-de-mayo-.jpg', definition: 'Revolución de Mayo', date: '25 de Mayo' } // Asegúrate que el nombre de archivo sea exactamente '25-de-mayo-.jpg'
+        ];
+
+        // --- Variables de Estado del Juego ---
+        let currentStage = 0; // 0: Inicio, 1: Trivia, 2: Match, 3: Reveal Image, 4: Final
+        let triviaScore = 0;
+        let matchScore = 0;
+        let revealImageScore = 0;
+        let triviaCurrentQuestionIndex = 0;
+        let shuffledTriviaQuestions = [];
+        let matchPairsMade = 0;
+        let selectedImageCard = null;
+        let selectedDateCard = null;
+        let revealImageMatchesMade = 0;
+        let revealedCard = null;
+        
+        let timerInterval;
+        const TIME_LIMIT = 60; // 60 segundos por etapa
+
+        // --- Elementos del DOM ---
+        const app = document.getElementById('app');
+        const startScreen = document.getElementById('startScreen');
+        const triviaStage = document.getElementById('triviaStage');
+        const matchStage = document.getElementById('matchStage');
+        const revealImageStage = document.getElementById('revealImageStage');
+        const finalResultsScreen = document.getElementById('finalResultsScreen');
+
+        const startButton = document.getElementById('startButton');
+
+        // Trivia elements
+        const triviaTimer = document.getElementById('triviaTimer').querySelector('span');
+        const triviaQuestionNumber = document.getElementById('triviaQuestionNumber');
+        const triviaQuestionText = document.getElementById('triviaQuestionText');
+        const triviaOptionsContainer = document.getElementById('triviaOptionsContainer');
+        const triviaFeedback = document.getElementById('triviaFeedback');
+        const nextStage1Button = document.getElementById('nextStage1Button');
+
+        // Match elements
+        const matchTimer = document.getElementById('matchTimer').querySelector('span');
+        const matchImageContainer = document.getElementById('matchImageContainer');
+        const matchDateContainer = document.getElementById('matchDateContainer');
+        const matchFeedback = document.getElementById('matchFeedback');
+        const nextStage2Button = document.getElementById('nextStage2Button');
+
+        // Reveal Image elements
+        const revealImageTimer = document.getElementById('revealImageTimer').querySelector('span');
+        const imageCardsContainer = document.getElementById('imageCardsContainer');
+        const revealOptionsContainer = document.getElementById('revealOptionsContainer');
+        const revealFeedback = document.getElementById('revealFeedback');
+        const nextStage3Button = document.getElementById('nextStage3Button');
+
+        // Final Results elements
+        const finalTotalScore = document.getElementById('finalTotalScore');
+        const restartGameButton = document.getElementById('restartGameButton');
+
+        // Audio elements
+        const correctSound = document.getElementById('correctSound');
+        const wrongSound = document.getElementById('wrongSound');
+        const startSound = document.getElementById('startSound');
+        const stageCompleteSound = document.getElementById('stageCompleteSound');
+        const cardFlipSound = document.getElementById('cardFlipSound');
+        const timeUpSound = document.getElementById('timeUpSound');
+
+        // --- Funciones de Utilidad ---
+        function playSound(sound) {
+            sound.currentTime = 0;
+            sound.play();
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function hideAllStages() {
+            startScreen.classList.add('hidden');
+            triviaStage.classList.add('hidden');
+            matchStage.classList.add('hidden');
+            revealImageStage.classList.add('hidden');
+            finalResultsScreen.classList.add('hidden');
+        }
+
+        function showStage(stageElement) {
+            hideAllStages();
+            stageElement.classList.remove('hidden');
+        }
+
+        // --- Lógica del Temporizador ---
+        function startTimer(timerElement, onTimeUp) {
+            let timeLeft = TIME_LIMIT;
+            timerElement.textContent = timeLeft;
+            timerElement.closest('.timer').classList.remove('warning'); // Asegura que no esté en rojo al inicio
+
+            clearInterval(timerInterval); // Limpiar cualquier temporizador anterior
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+
+                if (timeLeft <= 10) { // Alerta visual en los últimos 10 segundos
+                    timerElement.closest('.timer').classList.add('warning');
+                } else {
+                    timerElement.closest('.timer').classList.remove('warning');
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    playSound(timeUpSound);
+                    onTimeUp(); // Llama a la función de tiempo agotado para la etapa actual
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function handleTimeUp() {
+            stopTimer();
+            alert('¡Se acabó el tiempo! ⏳ El juego se reiniciará.');
+            startGame(); // Reinicia el juego completo
+        }
+
+        // --- Lógica del Juego por Etapas ---
+
+        // Etapa 0: Inicio
+        function startGame() {
+            playSound(startSound);
+            currentStage = 1;
+            triviaScore = 0;
+            matchScore = 0;
+            revealImageScore = 0;
+            triviaCurrentQuestionIndex = 0;
+            matchPairsMade = 0;
+            revealImageMatchesMade = 0;
+            revealedCard = null;
+            shuffledTriviaQuestions = shuffleArray([...triviaQuestions]);
+            
+            // Asegura que las imágenes se carguen correctamente al inicio del juego
+            preloadImages(imagesData.map(img => img.src), startTriviaStage);
+        }
+
+        // Función para precargar imágenes y luego iniciar la etapa
+        function preloadImages(imageSrcs, callback) {
+            let loadedCount = 0;
+            const totalImages = imageSrcs.length;
+
+            if (totalImages === 0) {
+                callback();
+                return;
+            }
+
+            imageSrcs.forEach(src => {
+                const img = new Image();
+                img.onload = () => {
+                    loadedCount++;
+                    if (loadedCount === totalImages) {
+                        callback();
+                    }
+                };
+                img.onerror = () => {
+                    console.error(`Error al cargar la imagen: ${src}. Verifica la ruta y el nombre del archivo.`);
+                    loadedCount++; // Considerar como "cargada" para no bloquear, pero registrar el error
+                    if (loadedCount === totalImages) {
+                        callback();
+                    }
+                };
+                img.src = src;
+            });
+        }
+
+
+        // Etapa 1: Trivia
+        function startTriviaStage() {
+            showStage(triviaStage);
+            triviaFeedback.textContent = '';
+            nextStage1Button.classList.add('hidden');
+            startTimer(triviaTimer, handleTimeUp);
+            loadTriviaQuestion();
+        }
+
+        function loadTriviaQuestion() {
+            if (triviaCurrentQuestionIndex < shuffledTriviaQuestions.length) {
+                const q = shuffledTriviaQuestions[triviaCurrentQuestionIndex];
+                triviaQuestionNumber.textContent = `${triviaCurrentQuestionIndex + 1} de ${shuffledTriviaQuestions.length}`;
+                triviaQuestionText.innerHTML = `¿Qué efeméride se relaciona con estas características? 🤔<br><br>${q.characteristics.map(char => `<span class="block text-gray-700 text-xl">- ${char}</span>`).join('')}`;
+                triviaOptionsContainer.innerHTML = '';
+
+                const shuffledOptions = shuffleArray([...q.options]);
+
+                shuffledOptions.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option;
+                    button.classList.add('bg-pink-400', 'hover:bg-pink-500', 'text-white', 'font-bold', 'py-3', 'px-6', 'rounded-full', 'text-xl', 'transition', 'duration-300', 'ease-in-out', 'transform', 'hover:scale-105', 'w-full', 'shadow-md');
+                    button.onclick = () => checkTriviaAnswer(option, q.correctAnswer);
+                    triviaOptionsContainer.appendChild(button);
+                });
+            } else {
+                stopTimer();
+                triviaFeedback.innerHTML = '¡Completaste la Trivia! 🎉';
+                triviaFeedback.classList.remove('text-red-500');
+                triviaFeedback.classList.add('text-green-600');
+                nextStage1Button.classList.remove('hidden');
+                playSound(stageCompleteSound);
+            }
+        }
+
+        function checkTriviaAnswer(selectedOption, correctAnswer) {
+            // Deshabilitar todas las opciones para evitar múltiples clics
+            triviaOptionsContainer.querySelectorAll('button').forEach(button => {
+                button.disabled = true;
+                if (button.textContent === correctAnswer) {
+                    button.classList.remove('bg-pink-400', 'hover:bg-pink-500');
+                    button.classList.add('bg-green-500', 'border-4', 'border-green-700');
+                } else if (button.textContent === selectedOption) {
+                    button.classList.remove('bg-pink-400', 'hover:bg-pink-500');
+                    button.classList.add('bg-red-500', 'border-4', 'border-red-700');
+                }
+            });
+
+            if (selectedOption === correctAnswer) {
+                triviaScore++;
+                triviaFeedback.innerHTML = '¡Correcto! 🎉<span class="animate-pop"></span>';
+                triviaFeedback.classList.remove('text-red-500');
+                triviaFeedback.classList.add('text-green-600');
+                playSound(correctSound);
+            } else {
+                triviaFeedback.innerHTML = `¡Incorrecto! 😔 La respuesta correcta era: ${correctAnswer} <span class="animate-pop"></span>`;
+                triviaFeedback.classList.remove('text-green-600');
+                triviaFeedback.classList.add('text-red-500');
+                playSound(wrongSound);
+            }
+
+            setTimeout(() => {
+                triviaCurrentQuestionIndex++;
+                triviaFeedback.textContent = '';
+                if (triviaCurrentQuestionIndex < shuffledTriviaQuestions.length) {
+                    loadTriviaQuestion();
+                } else {
+                    nextStage1Button.classList.remove('hidden');
+                }
+            }, 2500);
+        }
+
+        // Etapa 2: Asocia Imagen y Fecha (Match Stage)
+        function startMatchStage() {
+            showStage(matchStage);
+            matchFeedback.textContent = '';
+            nextStage2Button.classList.add('hidden');
+            matchPairsMade = 0;
+            selectedImageCard = null;
+            selectedDateCard = null;
+            startTimer(matchTimer, handleTimeUp);
+            renderMatchElements();
+        }
+
+        function renderMatchElements() {
+            matchImageContainer.innerHTML = '';
+            matchDateContainer.innerHTML = '';
+
+            const shuffledImages = shuffleArray([...imagesData]);
+            const shuffledDates = shuffleArray([...imagesData]);
+
+            shuffledImages.forEach(imgData => {
+                const imgCard = document.createElement('div');
+                imgCard.classList.add('matching-card', 'image-match-card');
+                imgCard.setAttribute('data-id', imgData.id);
+                imgCard.setAttribute('data-type', 'image');
+
+                const imgElement = document.createElement('img');
+                imgElement.src = imgData.src;
+                imgElement.alt = imgData.definition;
+                imgCard.appendChild(imgElement);
+                imgCard.innerHTML += `<p class="text-lg font-semibold">${imgData.definition}</p>`;
+
+                imgCard.onclick = () => selectMatchCard(imgCard, imgData.id);
+                matchImageContainer.appendChild(imgCard);
+            });
+
+            shuffledDates.forEach(defData => {
+                const dateCard = document.createElement('div');
+                dateCard.classList.add('matching-card', 'date-match-card');
+                dateCard.setAttribute('data-id', defData.id);
+                dateCard.setAttribute('data-type', 'date');
+                dateCard.innerHTML = `<p class="text-xl font-bold">${defData.date}</p>`;
+
+                dateCard.onclick = () => selectMatchCard(dateCard, defData.id);
+                matchDateContainer.appendChild(dateCard);
+            });
+        }
+
+        function selectMatchCard(card, id) {
+            if (card.classList.contains('matched')) {
+                return;
+            }
+
+            // Si se selecciona la misma carta, la deselecciona
+            if (card.dataset.type === 'image' && selectedImageCard === card) {
+                card.classList.remove('selected');
+                selectedImageCard = null;
+                return;
+            }
+            if (card.dataset.type === 'date' && selectedDateCard === card) {
+                card.classList.remove('selected');
+                selectedDateCard = null;
+                return;
+            }
+
+            if (card.dataset.type === 'image') {
+                if (selectedImageCard) {
+                    selectedImageCard.classList.remove('selected');
+                }
+                selectedImageCard = card;
+            } else if (card.dataset.type === 'date') {
+                if (selectedDateCard) {
+                    selectedDateCard.classList.remove('selected');
+                }
+                selectedDateCard = card;
+            }
+
+            card.classList.add('selected');
+            playSound(cardFlipSound);
+
+            if (selectedImageCard && selectedDateCard) {
+                setTimeout(() => checkMatch(), 700);
+            }
+        }
+
+        function checkMatch() {
+            if (!selectedImageCard || !selectedDateCard) return;
+
+            const imageId = selectedImageCard.dataset.id;
+            const dateId = selectedDateCard.dataset.id;
+
+            // Deshabilitar todas las cartas temporalmente durante la verificación
+            document.querySelectorAll('.matching-card').forEach(card => card.style.pointerEvents = 'none');
+
+            if (imageId === dateId) {
+                matchScore++;
+                matchFeedback.innerHTML = '¡Pareja correcta! 🎉';
+                matchFeedback.classList.remove('text-red-500');
+                matchFeedback.classList.add('text-green-600');
+                playSound(correctSound);
+
+                selectedImageCard.classList.remove('selected');
+                selectedDateCard.classList.remove('selected');
+                selectedImageCard.classList.add('matched');
+                selectedDateCard.classList.add('matched');
+                
+                selectedImageCard.style.pointerEvents = 'none';
+                selectedDateCard.style.pointerEvents = 'none';
+
+                matchPairsMade++;
+                resetMatchSelection();
+                checkMatchCompletion();
+
+            } else {
+                matchFeedback.innerHTML = '¡Intenta de nuevo! ❌';
+                matchFeedback.classList.remove('text-green-600');
+                matchFeedback.classList.add('text-red-500');
+                playSound(wrongSound);
+
+                selectedImageCard.classList.add('incorrect');
+                selectedDateCard.classList.add('incorrect');
+
+                setTimeout(() => {
+                    selectedImageCard.classList.remove('selected', 'incorrect');
+                    selectedDateCard.classList.remove('selected', 'incorrect');
+                    resetMatchSelection();
+                    matchFeedback.textContent = '';
+                    // Volver a habilitar clics después del feedback si no están emparejadas
+                    document.querySelectorAll('.matching-card:not(.matched)').forEach(card => card.style.pointerEvents = 'auto');
+                }, 1000);
+            }
+        }
+
+        function resetMatchSelection() {
+            selectedImageCard = null;
+            selectedDateCard = null;
+            // Habilitar clics en las cartas no emparejadas
+            document.querySelectorAll('.matching-card:not(.matched)').forEach(card => card.style.pointerEvents = 'auto');
+        }
+
+        function checkMatchCompletion() {
+            if (matchPairsMade === imagesData.length) {
+                stopTimer();
+                matchFeedback.innerHTML = '¡Todas las parejas encontradas! 🎉';
+                matchFeedback.classList.remove('text-red-500');
+                matchFeedback.classList.add('text-green-600');
+                nextStage2Button.classList.remove('hidden');
+                playSound(stageCompleteSound);
+            }
+        }
+
+        // Etapa 3: Descubre la Imagen
+        function startRevealImageStage() {
+            showStage(revealImageStage);
+            revealFeedback.textContent = '';
+            nextStage3Button.classList.add('hidden');
+            revealImageMatchesMade = 0;
+            revealedCard = null;
+            startTimer(revealImageTimer, handleTimeUp);
+            renderImageCards();
+        }
+
+        function renderImageCards() {
+            imageCardsContainer.innerHTML = '';
+            revealOptionsContainer.innerHTML = '';
+            revealOptionsContainer.classList.add('hidden');
+
+            const shuffledCards = shuffleArray([...imagesData]);
+            
+            shuffledCards.forEach((imgData, index) => {
+                const card = document.createElement('div');
+                card.classList.add('image-card');
+                card.setAttribute('data-id', imgData.id);
+                card.setAttribute('data-index', index);
+
+                const cardFront = document.createElement('div');
+                cardFront.classList.add('front', 'card-cover');
+                cardFront.textContent = '❓';
+
+                const cardBack = document.createElement('div');
+                cardBack.classList.add('back');
+                const imgElement = document.createElement('img');
+                imgElement.src = imgData.src; // Aquí se carga la imagen real
+                imgElement.alt = imgData.definition;
+                cardBack.appendChild(imgElement);
+
+                card.appendChild(cardFront);
+                card.appendChild(cardBack);
+
+                card.onclick = () => flipCard(card, imgData);
+                imageCardsContainer.appendChild(card);
+            });
+        }
+
+        function flipCard(card, imgData) {
+            if (card.classList.contains('flipped') || revealedCard || card.classList.contains('matched')) {
+                return;
+            }
+            playSound(cardFlipSound);
+            card.classList.add('flipped');
+            revealedCard = imgData;
+            
+            imageCardsContainer.querySelectorAll('.image-card').forEach(c => {
+                if (!c.classList.contains('flipped')) {
+                    c.style.pointerEvents = 'none';
+                }
+            });
+
+            setTimeout(() => {
+                showRevealOptions(imgData);
+            }, 500);
+        }
+
+        function showRevealOptions(imgData) {
+            revealOptionsContainer.classList.remove('hidden');
+            revealOptionsContainer.innerHTML = '';
+            revealFeedback.textContent = '';
+
+            const allPossibleOptions = imagesData.map(d => d.date);
+            let optionsSet = new Set();
+            optionsSet.add(imgData.date);
+
+            while (optionsSet.size < 4) {
+                const randomOption = allPossibleOptions[Math.floor(Math.random() * allPossibleOptions.length)];
+                if (!optionsSet.has(randomOption)) {
+                    optionsSet.add(randomOption);
+                }
+            }
+
+            const shuffledOptions = shuffleArray(Array.from(optionsSet));
+
+            shuffledOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('bg-orange-400', 'hover:bg-orange-500', 'text-white', 'font-bold', 'py-3', 'px-6', 'rounded-full', 'text-xl', 'transition', 'duration-300', 'ease-in-out', 'transform', 'hover:scale-105', 'w-full', 'shadow-md');
+                button.onclick = () => checkRevealAnswer(option, imgData.date);
+                revealOptionsContainer.appendChild(button);
+            });
+        }
+
+        function checkRevealAnswer(selectedOption, correctAnswer) {
+            revealOptionsContainer.querySelectorAll('button').forEach(button => {
+                button.disabled = true;
+                if (button.textContent === correctAnswer) {
+                    button.classList.remove('bg-orange-400', 'hover:bg-orange-500');
+                    button.classList.add('bg-green-500');
+                } else if (button.textContent === selectedOption) {
+                    button.classList.remove('bg-orange-400', 'hover:bg-orange-500');
+                    button.classList.add('bg-red-500');
+                }
+            });
+
+            if (selectedOption === correctAnswer) {
+                revealImageScore++;
+                revealFeedback.innerHTML = '¡Muy bien! ¡Lo descubriste! 🎉';
+                revealFeedback.classList.remove('text-red-500');
+                revealFeedback.classList.add('text-green-600');
+                playSound(correctSound);
+            } else {
+                revealFeedback.innerHTML = `¡Oh no! 😔 La fecha correcta era: ${correctAnswer}`;
+                revealFeedback.classList.remove('text-green-600');
+                revealFeedback.classList.add('text-red-500');
+                playSound(wrongSound);
+            }
+            
+            document.querySelector(`.image-card[data-id="${revealedCard.id}"]`).classList.add('matched');
+
+            revealImageMatchesMade++;
+            revealedCard = null;
+
+            setTimeout(() => {
+                revealOptionsContainer.classList.add('hidden');
+                revealFeedback.textContent = '';
+                imageCardsContainer.querySelectorAll('.image-card').forEach(c => {
+                    c.style.pointerEvents = 'auto';
+                });
+                checkRevealCompletion();
+            }, 2500);
+        }
+
+        function checkRevealCompletion() {
+            if (revealImageMatchesMade === imagesData.length) {
+                stopTimer();
+                revealFeedback.innerHTML = '¡Descubriste todas las imágenes! 🎉';
+                revealFeedback.classList.remove('text-red-500');
+                revealFeedback.classList.add('text-green-600');
+                nextStage3Button.classList.remove('hidden');
+                playSound(stageCompleteSound);
+            } else {
+                document.querySelectorAll('.image-card:not(.matched)').forEach(card => {
+                    card.classList.remove('flipped');
+                });
+            }
+        }
+
+        // Final del Juego
+        function showFinalResults() {
+            showStage(finalResultsScreen);
+            const totalScore = triviaScore + matchScore + revealImageScore;
+            const maxScore = triviaQuestions.length + imagesData.length + imagesData.length;
+            finalTotalScore.textContent = `${totalScore} de ${maxScore}`;
+            playSound(stageCompleteSound);
+        }
+
+        // --- Event Listeners ---
+        startButton.addEventListener('click', startGame);
+        nextStage1Button.addEventListener('click', startMatchStage); // Va a la nueva Etapa 2
+        nextStage2Button.addEventListener('click', startRevealImageStage); // Va a la Etapa 3
+        nextStage3Button.addEventListener('click', showFinalResults);
+        restartGameButton.addEventListener('click', startGame);
+        
+
+        // --- Inicialización ---
+        window.onload = () => {
+            hideAllStages();
+            startScreen.classList.remove('hidden');
+        };
+
+    </script>
+</body>
+</html>
