@@ -31,10 +31,15 @@
             justify-content: center;
             color: white;
             cursor: pointer;
-            transition: transform 0.2s ease-in-out, background-color 0.2s ease, border-color 0.2s ease; /* Añadida transición para border-color */
+            transition: transform 0.2s ease-in-out, background-color 0.2s ease, border-color 0.2s ease;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            min-height: 120px; /* Asegura un tamaño mínimo */
-            text-align: center; /* Centra el texto */
+            min-height: 120px;
+            text-align: center;
+            /* Ajuste para móvil: padding y tamaño de texto */
+            @media (max-width: 767px) {
+                padding: 0.5rem;
+                min-height: 100px;
+            }
         }
         .matching-card:hover {
             transform: scale(1.03);
@@ -47,8 +52,8 @@
         .matching-card.matched {
             background-color: #34d399; /* green-500 */
             cursor: default;
-            pointer-events: none; /* Deshabilita el clic */
-            transform: none; /* Quita el escalado */
+            pointer-events: none;
+            transform: none;
             border: 3px solid #10b981; /* green-600 */
         }
         .matching-card.incorrect {
@@ -56,25 +61,39 @@
             border: 3px solid #b91c1c; /* red-700 */
         }
         .matching-card img {
-            max-width: 90px; /* Controla el tamaño de la imagen */
+            max-width: 90px;
             max-height: 90px;
             object-fit: contain;
             border-radius: 0.5rem;
             margin-bottom: 0.5rem;
+            /* Ajuste para móvil */
+            @media (max-width: 767px) {
+                max-width: 70px;
+                max-height: 70px;
+            }
+        }
+        /* Ajuste para el texto dentro de matching-card en móvil */
+        .matching-card p {
+            font-size: 1.125rem; /* text-lg */
+            @media (max-width: 767px) {
+                font-size: 0.9rem; /* Un poco más pequeño para móviles */
+            }
         }
 
         /* Estilos para la Etapa 3 (Descubre la Imagen) */
         .image-card {
-            width: 120px;
-            height: 120px;
-            background-color: #a78bfa; /* purple-400 */
+            /* Usamos 'width: 100%' para que la carta ocupe el espacio disponible en la grilla */
+            width: 100%;
+            /* Utilizamos 'aspect-ratio' para que la altura se ajuste proporcionalmente al ancho */
+            aspect-ratio: 1 / 1; /* Esto hace que la carta sea cuadrada */
+            background-color: #a78bfa;
             border-radius: 0.75rem;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             cursor: pointer;
-            transition: transform 0.4s ease-in-out; /* Animación de volteo más suave */
+            transition: transform 0.4s ease-in-out;
             transform-style: preserve-3d;
             position: relative;
         }
@@ -93,17 +112,17 @@
         }
         .image-card .back {
             transform: rotateY(180deg);
-            background-color: #c4b5fd; /* purple-200, para que se vea la imagen */
-            padding: 0.5rem; /* Pequeño padding dentro de la carta revelada */
+            background-color: #c4b5fd;
+            padding: 0.5rem;
         }
         .image-card img {
-            width: 100%; /* La imagen llenará el back */
+            width: 100%;
             height: 100%;
-            object-fit: contain; /* Para que la imagen no se recorte */
+            object-fit: contain;
             border-radius: inherit;
         }
         .card-cover {
-            background-color: #a78bfa; /* purple-400 */
+            background-color: #a78bfa;
             border-radius: 0.75rem;
             position: absolute;
             top: 0;
@@ -113,9 +132,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem; /* Tamaño del signo de interrogación */
+            font-size: 2rem;
             color: white;
             transition: opacity 0.3s ease;
+            /* Ajuste para móvil: signo de interrogación más pequeño */
+            @media (max-width: 767px) {
+                font-size: 1.5rem;
+            }
         }
         /* Estilo para el temporizador */
         .timer {
@@ -135,6 +158,44 @@
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
+        }
+
+        /* Ajustes generales de texto para móviles */
+        @media (max-width: 767px) {
+            h1 { font-size: 3rem; } /* text-5xl -> más pequeño */
+            h2 { font-size: 2.5rem; } /* text-4xl -> más pequeño */
+            p.text-2xl { font-size: 1.5rem; } /* text-2xl -> más pequeño */
+            p.text-xl { font-size: 1.1rem; } /* text-xl -> más pequeño */
+            p.text-3xl { font-size: 1.8rem; } /* text-3xl -> más pequeño */
+            .btn-lg { /* Botones grandes */
+                padding: 1rem 2.5rem;
+                font-size: 1.1rem;
+            }
+            .grid-cols-2 {
+                grid-template-columns: repeat(1, minmax(0, 1fr)); /* 1 columna en móvil */
+            }
+            .md\:grid-cols-2 { /* Restaurar a 2 columnas en pantallas medianas y grandes */
+                @media (min-width: 768px) {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+            }
+            /* Ajuste específico para el contenedor de cards en la etapa 3 */
+            #imageCardsContainer {
+                grid-template-columns: repeat(3, 1fr); /* 3 columnas iguales */
+                gap: 0.5rem; /* Espaciado más pequeño entre las cartas */
+                padding: 0 0.5rem; /* Padding horizontal para que no toquen los bordes */
+                max-width: none; /* Eliminar max-width para que ocupe todo el ancho disponible */
+            }
+             #revealOptionsContainer {
+                grid-template-columns: repeat(1, minmax(0, 1fr)); /* Opciones en 1 columna en móvil */
+                @media (min-width: 768px) {
+                    grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2 columnas en desktop */
+                }
+            }
+            /* Ajustes para los contenedores de imágenes y fechas en la etapa 2 */
+            #matchImageContainer, #matchDateContainer {
+                min-height: 200px; /* Un poco más pequeño */
+            }
         }
     </style>
 </head>
@@ -166,7 +227,7 @@
             <div class="timer" id="matchTimer">Tiempo: <span>60</span>s</div>
             <h2 class="text-4xl font-extrabold text-green-700 mb-6">Etapa 2: ¡Asocia y Descubre! 🧩</h2>
             <p class="text-2xl text-gray-700 mb-8">Haz clic en una imagen y luego en su fecha correcta. 👇</p>
-            <div class="grid grid-cols-2 gap-4 max-w-2xl mx-auto mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-8">
                 <div id="matchImageContainer" class="flex flex-wrap justify-center content-start gap-4 p-4 bg-gray-100 rounded-lg shadow-inner border-2 border-gray-200 min-h-[250px]">
                     </div>
                 <div id="matchDateContainer" class="flex flex-wrap justify-center content-start gap-4 p-4 bg-gray-100 rounded-lg shadow-inner border-2 border-gray-200 min-h-[250px]">
@@ -207,7 +268,9 @@
     <audio id="startSound" src="https://www.soundjay.com/misc/sounds/peep-03.mp3"></audio>
     <audio id="stageCompleteSound" src="https://www.soundjay.com/misc/sounds/peep-01.mp3"></audio>
     <audio id="cardFlipSound" src="https://www.soundjay.com/misc/sounds/light-switch-01.mp3"></audio>
-    <audio id="timeUpSound" src="https://www.soundjay.com/misc/sounds/peep-02.mp3"></audio> <script>
+    <audio id="timeUpSound" src="https://www.soundjay.com/misc/sounds/peep-02.mp3"></audio>
+
+    <script>
         // --- Datos del Juego ---
         const triviaQuestions = [
             {
@@ -272,18 +335,18 @@
             }
         ];
 
-        // URLs de imágenes para las etapas (¡LOCALES Y CON NOMBRES EXACTOS!)
+        // Las URLs de tus imágenes son correctas, solo las repito aquí para la integridad del código.
         const imagesData = [
-    { id: 'escudo', src: 'https://sofiabf86.github.io/juego_efemeridesar/escudo.jpg', definition: 'Escudo Nacional', date: '12 de Marzo' },
-    { id: 'malvinas', src: 'https://sofiabf86.github.io/juego_efemeridesar/malvinas.jpg', definition: 'Guerra de Malvinas', date: '2 de Abril' },
-    { id: 'trabajador', src: 'https://sofiabf86.github.io/juego_efemeridesar/trabajo.jpg', definition: 'Día del Trabajador', date: '1ro de Mayo' },
-    { id: 'himno', src: 'https://sofiabf86.github.io/juego_efemeridesar/himno.jpg', definition: 'Himno Nacional', date: '11 de Mayo' },
-    { id: 'escarapela', src: 'https://sofiabf86.github.io/juego_efemeridesar/escarapela.jpg', definition: 'Día de la Escarapela', date: '18 de Mayo' },
-    { id: 'cabildo', src: 'https://sofiabf86.github.io/juego_efemeridesar/25-de-mayo-.jpg', definition: 'Revolución de Mayo', date: '25 de Mayo' }
-];
-        
+            { id: 'escudo', src: 'https://sofiabf86.github.io/juego_efemeridesar/escudo.jpg', definition: 'Escudo Nacional', date: '12 de Marzo' },
+            { id: 'malvinas', src: 'https://sofiabf86.github.io/juego_efemeridesar/malvinas.jpg', definition: 'Guerra de Malvinas', date: '2 de Abril' },
+            { id: 'trabajador', src: 'https://sofiabf86.github.io/juego_efemeridesar/trabajo.jpg', definition: 'Día del Trabajador', date: '1ro de Mayo' },
+            { id: 'himno', src: 'https://sofiabf86.github.io/juego_efemeridesar/himno.jpg', definition: 'Himno Nacional', date: '11 de Mayo' },
+            { id: 'escarapela', src: 'https://sofiabf86.github.io/juego_efemeridesar/escarapela.jpg', definition: 'Día de la Escarapela', date: '18 de Mayo' },
+            { id: 'cabildo', src: 'https://sofiabf86.github.io/juego_efemeridesar/25-de-mayo-.jpg', definition: 'Revolución de Mayo', date: '25 de Mayo' }
+        ];
+
         // --- Variables de Estado del Juego ---
-        let currentStage = 0; // 0: Inicio, 1: Trivia, 2: Match, 3: Reveal Image, 4: Final
+        let currentStage = 0;
         let triviaScore = 0;
         let matchScore = 0;
         let revealImageScore = 0;
@@ -373,15 +436,15 @@
         function startTimer(timerElement, onTimeUp) {
             let timeLeft = TIME_LIMIT;
             timerElement.textContent = timeLeft;
-            timerElement.closest('.timer').classList.remove('warning'); // Asegura que no esté en rojo al inicio
+            timerElement.closest('.timer').classList.remove('warning');
 
-            clearInterval(timerInterval); // Limpiar cualquier temporizador anterior
+            clearInterval(timerInterval);
 
             timerInterval = setInterval(() => {
                 timeLeft--;
                 timerElement.textContent = timeLeft;
 
-                if (timeLeft <= 10) { // Alerta visual en los últimos 10 segundos
+                if (timeLeft <= 10) {
                     timerElement.closest('.timer').classList.add('warning');
                 } else {
                     timerElement.closest('.timer').classList.remove('warning');
@@ -390,7 +453,7 @@
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     playSound(timeUpSound);
-                    onTimeUp(); // Llama a la función de tiempo agotado para la etapa actual
+                    onTimeUp();
                 }
             }, 1000);
         }
@@ -402,7 +465,7 @@
         function handleTimeUp() {
             stopTimer();
             alert('¡Se acabó el tiempo! ⏳ El juego se reiniciará.');
-            startGame(); // Reinicia el juego completo
+            startGame();
         }
 
         // --- Lógica del Juego por Etapas ---
@@ -420,11 +483,10 @@
             revealedCard = null;
             shuffledTriviaQuestions = shuffleArray([...triviaQuestions]);
             
-            // Asegura que las imágenes se carguen correctamente al inicio del juego
+            // Precargar imágenes antes de iniciar la primera etapa para evitar flashes
             preloadImages(imagesData.map(img => img.src), startTriviaStage);
         }
 
-        // Función para precargar imágenes y luego iniciar la etapa
         function preloadImages(imageSrcs, callback) {
             let loadedCount = 0;
             const totalImages = imageSrcs.length;
@@ -443,8 +505,8 @@
                     }
                 };
                 img.onerror = () => {
-                    console.error(`Error al cargar la imagen: ${src}. Verifica la ruta y el nombre del archivo.`);
-                    loadedCount++; // Considerar como "cargada" para no bloquear, pero registrar el error
+                    console.error(`Error al cargar la imagen: ${src}. Verifica la URL.`);
+                    loadedCount++;
                     if (loadedCount === totalImages) {
                         callback();
                     }
@@ -467,7 +529,7 @@
             if (triviaCurrentQuestionIndex < shuffledTriviaQuestions.length) {
                 const q = shuffledTriviaQuestions[triviaCurrentQuestionIndex];
                 triviaQuestionNumber.textContent = `${triviaCurrentQuestionIndex + 1} de ${shuffledTriviaQuestions.length}`;
-                triviaQuestionText.innerHTML = `¿Qué efeméride se relaciona con estas características? 🤔<br><br>${q.characteristics.map(char => `<span class="block text-gray-700 text-xl">- ${char}</span>`).join('')}`;
+                triviaQuestionText.innerHTML = `¿Qué efeméride se relaciona con estas características? 🤔<br><br>${q.characteristics.map(char => `<span class="block text-gray-700 text-base md:text-xl">- ${char}</span>`).join('')}`;
                 triviaOptionsContainer.innerHTML = '';
 
                 const shuffledOptions = shuffleArray([...q.options]);
@@ -476,6 +538,7 @@
                     const button = document.createElement('button');
                     button.textContent = option;
                     button.classList.add('bg-pink-400', 'hover:bg-pink-500', 'text-white', 'font-bold', 'py-3', 'px-6', 'rounded-full', 'text-xl', 'transition', 'duration-300', 'ease-in-out', 'transform', 'hover:scale-105', 'w-full', 'shadow-md');
+                    button.classList.add('text-base', 'md:text-xl'); 
                     button.onclick = () => checkTriviaAnswer(option, q.correctAnswer);
                     triviaOptionsContainer.appendChild(button);
                 });
@@ -490,7 +553,6 @@
         }
 
         function checkTriviaAnswer(selectedOption, correctAnswer) {
-            // Deshabilitar todas las opciones para evitar múltiples clics
             triviaOptionsContainer.querySelectorAll('button').forEach(button => {
                 button.disabled = true;
                 if (button.textContent === correctAnswer) {
@@ -567,6 +629,7 @@
                 dateCard.setAttribute('data-id', defData.id);
                 dateCard.setAttribute('data-type', 'date');
                 dateCard.innerHTML = `<p class="text-xl font-bold">${defData.date}</p>`;
+                dateCard.querySelector('p').classList.add('text-base', 'md:text-xl');
 
                 dateCard.onclick = () => selectMatchCard(dateCard, defData.id);
                 matchDateContainer.appendChild(dateCard);
@@ -578,7 +641,6 @@
                 return;
             }
 
-            // Si se selecciona la misma carta, la deselecciona
             if (card.dataset.type === 'image' && selectedImageCard === card) {
                 card.classList.remove('selected');
                 selectedImageCard = null;
@@ -616,7 +678,6 @@
             const imageId = selectedImageCard.dataset.id;
             const dateId = selectedDateCard.dataset.id;
 
-            // Deshabilitar todas las cartas temporalmente durante la verificación
             document.querySelectorAll('.matching-card').forEach(card => card.style.pointerEvents = 'none');
 
             if (imageId === dateId) {
@@ -652,7 +713,6 @@
                     selectedDateCard.classList.remove('selected', 'incorrect');
                     resetMatchSelection();
                     matchFeedback.textContent = '';
-                    // Volver a habilitar clics después del feedback si no están emparejadas
                     document.querySelectorAll('.matching-card:not(.matched)').forEach(card => card.style.pointerEvents = 'auto');
                 }, 1000);
             }
@@ -661,7 +721,6 @@
         function resetMatchSelection() {
             selectedImageCard = null;
             selectedDateCard = null;
-            // Habilitar clics en las cartas no emparejadas
             document.querySelectorAll('.matching-card:not(.matched)').forEach(card => card.style.pointerEvents = 'auto');
         }
 
@@ -707,7 +766,7 @@
                 const cardBack = document.createElement('div');
                 cardBack.classList.add('back');
                 const imgElement = document.createElement('img');
-                imgElement.src = imgData.src; // Aquí se carga la imagen real
+                imgElement.src = imgData.src;
                 imgElement.alt = imgData.definition;
                 cardBack.appendChild(imgElement);
 
@@ -760,6 +819,7 @@
                 const button = document.createElement('button');
                 button.textContent = option;
                 button.classList.add('bg-orange-400', 'hover:bg-orange-500', 'text-white', 'font-bold', 'py-3', 'px-6', 'rounded-full', 'text-xl', 'transition', 'duration-300', 'ease-in-out', 'transform', 'hover:scale-105', 'w-full', 'shadow-md');
+                button.classList.add('text-base', 'md:text-xl');
                 button.onclick = () => checkRevealAnswer(option, imgData.date);
                 revealOptionsContainer.appendChild(button);
             });
@@ -831,12 +891,11 @@
 
         // --- Event Listeners ---
         startButton.addEventListener('click', startGame);
-        nextStage1Button.addEventListener('click', startMatchStage); // Va a la nueva Etapa 2
-        nextStage2Button.addEventListener('click', startRevealImageStage); // Va a la Etapa 3
+        nextStage1Button.addEventListener('click', startMatchStage);
+        nextStage2Button.addEventListener('click', startRevealImageStage);
         nextStage3Button.addEventListener('click', showFinalResults);
         restartGameButton.addEventListener('click', startGame);
         
-
         // --- Inicialización ---
         window.onload = () => {
             hideAllStages();
